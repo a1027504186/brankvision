@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { cp, copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 
 const entryPath = new URL("../dist/server/index.js", import.meta.url);
 const source = await readFile(entryPath, "utf8");
@@ -16,3 +16,15 @@ const patched = source.replace(
 );
 
 await writeFile(entryPath, patched, "utf8");
+
+const metadataDirectory = new URL("../dist/.openai/", import.meta.url);
+await mkdir(metadataDirectory, { recursive: true });
+await copyFile(
+  new URL("../.openai/hosting.json", import.meta.url),
+  new URL("hosting.json", metadataDirectory),
+);
+await cp(
+  new URL("../drizzle/", import.meta.url),
+  new URL("drizzle/", metadataDirectory),
+  { recursive: true, force: true },
+);
