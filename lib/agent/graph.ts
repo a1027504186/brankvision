@@ -4,6 +4,7 @@ import { routeIntent, runAgentTurn, validateBrandAsset, type RoutedIntent } from
 import { saveSession } from "./store";
 import type { AgentAsset, AgentSession, AgentTrace } from "./types";
 import { formatKnowledgeContext, retrieveBrandKnowledge, type BrandKnowledgeDocument } from "./knowledge";
+import { mirrorSessionToPython, retrieveWithPython, routeWithPython } from "./python-runtime";
 
 export type AgentTurnResult = {
   session: AgentSession;
@@ -33,7 +34,7 @@ const AgentGraphState = Annotation.Root({
 type GraphState = typeof AgentGraphState.State;
 
 async function routeNode(state: GraphState) {
-  const route = await routeIntent(state.session, state.input);
+  const route = (await routeWithPython(state.session, state.input)) || await routeIntent(state.session, state.input);
   const now = new Date().toISOString();
   return {
     route,
@@ -55,8 +56,8 @@ async function executeNode(state: GraphState) {
   return { result: await runAgentTurn(state.session, state.input, state.route, formatKnowledgeContext(state.knowledge)) };
 }
 
-function retrievalNode(state: GraphState) {
-  const knowledge = retrieveBrandKnowledge(
+async function retrievalNode(state: GraphState) {
+  const knowledge = (await retrieveWithPython(state.session, state.input)) || retrieveBrandKnowledge(
     state.session,
     state.input,
     state.route?.platform || state.session.brand.platform,
@@ -152,5 +153,6 @@ export async function runAgentGraphTurn(session: AgentSession, input: string) {
     output.result.session.traces = [...(output.result.session.traces || []).slice(-99), output.trace];
     await saveSession(output.result.session);
   }
+  await mirrorSessionToPython(output.result.session);
   return { ...output.result, audit: output.audit };
 }

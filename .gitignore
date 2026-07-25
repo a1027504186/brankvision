@@ -50,3 +50,15 @@ next-env.d.ts
 /.server-out.log
 /pawmuse-original.tsx
 /pawmuse-repaired.tsx
+
+# Python AI service
+/services/ai-api/.venv/
+/services/ai-api/data/
+/services/ai-api/*.db
+/services/ai-api/*.egg-info/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/

@@ -1,0 +1,58 @@
+services:
+  - type: web
+    name: spectrum-ai-api
+    runtime: docker
+    region: singapore
+    plan: starter
+    dockerfilePath: ./services/ai-api/Dockerfile
+    dockerContext: ./services/ai-api
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: spectrum-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: spectrum-redis
+          type: keyvalue
+          property: connectionString
+      - key: CORS_ORIGINS
+        value: https://spectrum-brand-agent.wowkun.chatgpt.site
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: IMAGE_API_KEY
+        sync: false
+      - key: EMBEDDING_API_KEY
+        sync: false
+      - key: EMBEDDING_BASE_URL
+        sync: false
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_BUCKET
+        value: spectrum-assets
+      - key: S3_PUBLIC_BASE_URL
+        sync: false
+
+  - type: keyvalue
+    name: spectrum-redis
+    region: singapore
+    plan: starter
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru
+
+databases:
+  - name: spectrum-postgres
+    region: singapore
+    plan: basic-256mb
+    databaseName: spectrum
+    user: spectrum
+    postgresMajorVersion: "16"
+    ipAllowList: []
