@@ -1,5 +1,40 @@
 # vinext-starter
 
+## SPECTRUM Agent Architecture
+
+SPECTRUM uses a LangGraph.js state graph to coordinate brand discovery and
+multi-platform asset generation:
+
+- `route_intent` classifies questions, corrections, retries, platform switches,
+  workflow input, and explicit asset-generation requests.
+- specialized execution nodes preserve the current session instead of forcing
+  every message through a fixed wizard.
+- the image tool receives the complete brand style system and the original
+  logo reference before creating Meituan, Xiaohongshu, or WeChat assets.
+- `retrieve_context` retrieves global brand rules and platform-specific
+  delivery guidance before execution.
+- `quality_gate` verifies brand tokens, asset persistence, asset kind, and
+  preview synchronization.
+- each graph turn writes a structured trace containing route, action, checks,
+  duration, and failure information.
+
+Production sessions, asset metadata, and traces are persisted in Cloudflare D1.
+Generated image bytes are stored in R2. Local development automatically falls
+back to atomic JSON session files and `public/generated` assets when the
+bindings are unavailable.
+
+The read-only diagnostics endpoint is:
+
+```text
+GET /api/agent/diagnostics?id=<session-id>
+```
+
+Run the deterministic agent evaluation suite without calling a real text model:
+
+```bash
+npm run test:agent
+```
+
 A clean full-stack starter running on
 [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
 Drizzle support.

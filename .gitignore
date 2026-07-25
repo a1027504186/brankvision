@@ -30,6 +30,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -43,5 +44,9 @@ next-env.d.ts
 /.pnpm-store/
 /dev-server.log
 /dev-server-error.log
+/.agent-data/
+/.devserver/
+/.server-err.log
+/.server-out.log
 /pawmuse-original.tsx
 /pawmuse-repaired.tsx

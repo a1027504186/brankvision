@@ -1,5 +1,7 @@
 export type Platform = "meituan" | "xiaohongshu" | "wechat";
 
+export type BrandType = "personal" | "store" | "product";
+
 export type AppView = "dashboard" | "workspace" | "gallery";
 
 export type ChatMessage = {
@@ -8,6 +10,7 @@ export type ChatMessage = {
   content: string;
   time?: string;
   attachment?: "brand" | "poster";
+  imageUrl?: string;
 };
 
 export type BrandAsset = {
@@ -70,4 +73,10 @@ export type BrandProfile = {
   positioning: string;
   colors: Array<{ name: string; value: string }>;
   assets: BrandAsset[];
+};
+
+export type BrandDraft = {
+  type: BrandType;
+  name: string;
+  positioning: string;
 };
