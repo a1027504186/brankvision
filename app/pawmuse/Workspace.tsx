@@ -8,6 +8,7 @@ import { PhonePreview } from "./PhonePreview";
 import type { BrandAsset, BrandDraft, BrandType, ChatMessage, Platform, StoryProgress } from "./types";
 import { SpectrumLogo } from "./SpectrumLogo";
 import { AgentDialoguePanel } from "./AgentDialoguePanel";
+import { KnowledgePanel } from "./KnowledgePanel";
 import { BRAND_STYLE_SYSTEMS } from "@/lib/brand-system";
 
 const PLATFORM_LABELS: Record<Platform, string> = { meituan: "美团", xiaohongshu: "小红书", wechat: "微信" };
@@ -375,7 +376,8 @@ async function downloadOriginalAsset(asset: BrandAsset) {
   }
 }
 
-function BrandAssetsPanel({ empty = false, onClose, styleId = "playful", materials = BRAND.assets, brandDraft, usePetIdentity = true, logoUrl }: { empty?: boolean; onClose?: () => void; styleId?: StyleId; materials?: BrandAsset[]; brandDraft?: BrandDraft; usePetIdentity?: boolean; logoUrl?: string }) {
+function BrandAssetsPanel({ empty = false, onClose, styleId = "playful", materials = BRAND.assets, brandDraft, usePetIdentity = true, logoUrl, brandId }: { empty?: boolean; onClose?: () => void; styleId?: StyleId; materials?: BrandAsset[]; brandDraft?: BrandDraft; usePetIdentity?: boolean; logoUrl?: string; brandId?: string }) {
+  const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   const colors = STYLE_COLORS[styleId];
   const displayName = usePetIdentity ? BRAND.name : brandDraft?.name || BRAND_TYPE_LABELS[brandDraft?.type || "personal"];
   const displayCategory = usePetIdentity ? BRAND.category : BRAND_TYPE_LABELS[brandDraft?.type || "personal"];
@@ -384,7 +386,8 @@ function BrandAssetsPanel({ empty = false, onClose, styleId = "playful", materia
   const initials = displayName.trim().slice(0, 2) || "SP";
   return (
     <section className="h-full w-[440px] shrink-0 overflow-y-auto border-r border-[var(--border)] bg-[var(--panel)] px-6 py-10 [scrollbar-width:thin] [scrollbar-color:#B8B0AA_transparent]">
-      <div className="mb-5 flex items-center justify-between"><div className="flex items-center gap-2 text-[15px] font-extrabold text-[var(--ink)]"><Layers3 size={19} />品牌资产</div><div className="flex items-center gap-2">{onClose && <button type="button" onClick={onClose} aria-label="收起品牌资产" className="grid size-7 place-items-center rounded-full border border-[var(--border)] bg-white text-[var(--secondary)] hover:border-[var(--brand)] hover:text-[var(--brand)]"><ChevronRight size={13} /></button>}<button type="button" className="grid size-7 place-items-center rounded-full border border-[var(--border)] bg-white text-[var(--secondary)]"><Plus size={13} /></button></div></div>
+      {knowledgeOpen ? <KnowledgePanel brandId={brandId} onClose={() => setKnowledgeOpen(false)} /> : <>
+      <div className="mb-5 flex items-center justify-between"><div className="flex items-center gap-2 text-[15px] font-extrabold text-[var(--ink)]"><Layers3 size={19} />品牌资产</div><div className="flex items-center gap-2">{onClose && <button type="button" onClick={onClose} aria-label="收起品牌资产" className="grid size-7 place-items-center rounded-full border border-[var(--border)] bg-white text-[var(--secondary)] hover:border-[var(--brand)] hover:text-[var(--brand)]"><ChevronRight size={13} /></button>}<button type="button" onClick={() => setKnowledgeOpen(true)} aria-label="打开品牌知识库" title="品牌知识库" className="grid size-7 place-items-center rounded-full border border-[var(--border)] bg-white text-[var(--secondary)] hover:border-[var(--brand)] hover:text-[var(--brand)]"><Plus size={13} /></button></div></div>
       {empty ? <div className="grid h-[calc(100%-52px)] min-h-[620px] place-items-center rounded-2xl border border-dashed border-[#D9D0C7] bg-white/60 px-12 text-center"><div><div className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#F2EFEB] text-[var(--muted)]"><Layers3 size={22} /></div><h2 className="mt-5 text-[14px] font-bold text-[var(--ink)]">品牌资产等待生成</h2><p className="mt-2 text-[11px] leading-5 text-[var(--muted)]">完成品牌命名与价值定位后<br />系统将在这里建立视觉体系</p></div></div> :
       <div className="space-y-4">
         <article className="rounded-2xl border border-[var(--border)] bg-white p-4 shadow-[0_2px_5px_#2C1C1808]">
@@ -409,7 +412,7 @@ function BrandAssetsPanel({ empty = false, onClose, styleId = "playful", materia
             {materials.map(asset => <button key={asset.id} type="button" onClick={() => void downloadOriginalAsset(asset)} aria-label={`下载${asset.name}原图`} title="下载原图" className="group flex w-full items-center gap-3 rounded-xl bg-[#F8F7F5] p-3 text-left transition hover:bg-[#F3F0EC]"><span className="grid size-10 shrink-0 place-items-center rounded-lg border border-[#F3D8C8] bg-[#FFF7F1] text-[#D98665]"><Store size={16} /></span><span className="min-w-0 flex-1"><b className="block truncate text-[10px] text-[var(--ink)]">{asset.name}</b><span className="mt-1 block text-[9px] text-[var(--muted)]">{asset.size}</span></span><Download size={15} className="text-[#B8B1AC] transition group-hover:text-[var(--brand)]" /></button>)}
           </div> : <div className="mt-3 grid h-[70px] place-items-center rounded-xl border border-[var(--border)] bg-[#F8F7F5] text-[10px] text-[var(--muted)]">暂无成型物料</div>}
         </article>
-      </div>}
+      </div>}</>}
     </section>
   );
 }
@@ -455,6 +458,7 @@ export function Workspace({ brandType = "store", initialCategory = "宠物店", 
   const [selectedStyle, setSelectedStyle] = useState<StyleId>("playful");
   const [brandDraft, setBrandDraft] = useState<BrandDraft>({ type: brandType, name: existingStore ? BRAND.name : "", positioning: existingStore ? BRAND.positioning : "" });
   const [generatedAssets, setGeneratedAssets] = useState<BrandAsset[]>([]);
+  const [knowledgeBrandId, setKnowledgeBrandId] = useState<string>();
   const assetsReady = progress.brandReady;
   const fallbackMaterials = brandType === "store" ? assetsFromProgress(progress) : [];
   const materials = fallbackMaterials.map((asset) => generatedAssets.find((generated) => generated.id === asset.id) || asset).concat(generatedAssets.filter((generated) => !fallbackMaterials.some((asset) => asset.id === generated.id)));
@@ -472,13 +476,14 @@ export function Workspace({ brandType = "store", initialCategory = "宠物店", 
   if (!existingStore) {
     return <main className={`workspace-drawer-grid grid h-full min-w-0 flex-1 grid-rows-1 overflow-hidden bg-[var(--paper)] ${assetsExpanded ? "grid-cols-[minmax(430px,1fr)_440px_500px]" : "grid-cols-[minmax(780px,1fr)_48px_500px]"}`}>
       <div className="col-start-1 row-start-1 h-full min-w-0"><AgentDialoguePanel brandType={brandType} initialCategory={initialCategory} onSessionChange={(session) => {
+        setKnowledgeBrandId(session.id);
         setBrandDraft({ type: brandType, name: session.brand.name, positioning: session.brand.positioning });
         if (session.brand.style) setSelectedStyle(session.brand.style);
         if (session.brand.platform) selectPlatform(session.brand.platform);
         setGeneratedAssets(session.assets.map(({ id, name, size, platform: assetPlatform, url }) => ({ id, name, size, platform: assetPlatform, url })));
         onProgressChange(session.progress);
       }} /></div>
-      <div className="col-start-2 row-start-1 h-full min-w-0">{assetsExpanded ? <BrandAssetsPanel onClose={() => setAssetsExpanded(false)} styleId={selectedStyle} materials={materials} brandDraft={brandDraft} usePetIdentity={brandType === "store"} logoUrl={logoUrl} /> : <CollapsedAssetsRail ready={assetsReady} onExpand={() => setAssetsExpanded(true)} />}</div>
+      <div className="col-start-2 row-start-1 h-full min-w-0">{assetsExpanded ? <BrandAssetsPanel onClose={() => setAssetsExpanded(false)} styleId={selectedStyle} materials={materials} brandDraft={brandDraft} usePetIdentity={brandType === "store"} logoUrl={logoUrl} brandId={knowledgeBrandId} /> : <CollapsedAssetsRail ready={assetsReady} onExpand={() => setAssetsExpanded(true)} />}</div>
       <section className="relative col-start-3 row-start-1 flex h-full items-center justify-center overflow-hidden bg-[var(--panel)] p-8">{previewActivated ? <><PlatformPicker platform={platform} onSelect={selectPlatform} /><PhonePreview platform={platform} progress={progress} assetUrls={assetUrls} brandDraft={brandDraft} brandType={brandType} logoUrl={logoUrl} xhsDetail={xhsDetail} onOpenXhsPost={() => setXhsDetail(true)} onBackXhsPost={() => setXhsDetail(false)} /></> : <EmptyBrandPreview />}</section>
     </main>;
   }

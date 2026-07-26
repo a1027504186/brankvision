@@ -20,6 +20,7 @@ from .router import route_intent
 from .schemas import (
     BrandCreate,
     ExternalRouteRequest,
+    KnowledgeDocumentResponse,
     KnowledgeQuery,
     KnowledgeUploadResponse,
     MessageInput,
@@ -215,6 +216,42 @@ async def upload_document(
         source_name=document.source_name,
         chunks=len(chunks),
     )
+
+
+@app.get("/v1/knowledge/documents", response_model=list[KnowledgeDocumentResponse])
+async def list_documents(
+    brand_id: str | None = None,
+    db: AsyncSession = Depends(get_db),
+):
+    chunk_counts = (
+        select(
+            KnowledgeChunk.document_id,
+            func.count(KnowledgeChunk.id).label("chunks"),
+        )
+        .group_by(KnowledgeChunk.document_id)
+        .subquery()
+    )
+    statement = (
+        select(KnowledgeDocument, func.coalesce(chunk_counts.c.chunks, 0))
+        .outerjoin(chunk_counts, chunk_counts.c.document_id == KnowledgeDocument.id)
+        .order_by(KnowledgeDocument.created_at.desc())
+        .limit(100)
+    )
+    if brand_id:
+        statement = statement.where(KnowledgeDocument.brand_id == brand_id)
+    rows = (await db.execute(statement)).all()
+    return [
+        KnowledgeDocumentResponse(
+            id=document.id,
+            title=document.title,
+            source_name=document.source_name,
+            content_type=document.content_type,
+            status=document.status,
+            chunks=int(chunks),
+            created_at=document.created_at,
+        )
+        for document, chunks in rows
+    ]
 
 
 @app.post("/v1/knowledge/query", response_model=RetrievalResponse)

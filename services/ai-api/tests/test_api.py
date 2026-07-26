@@ -46,6 +46,11 @@ async def test_document_upload_vector_retrieval_citations_and_evaluation(client)
     assert upload.status_code == 201
     document_id = upload.json()["document_id"]
 
+    documents = await client.get("/v1/knowledge/documents")
+    assert documents.status_code == 200
+    assert documents.json()[0]["id"] == document_id
+    assert documents.json()[0]["chunks"] == 1
+
     query = await client.post(
         "/v1/knowledge/query",
         json={"query": "Logo 可以变形吗？", "top_k": 3},

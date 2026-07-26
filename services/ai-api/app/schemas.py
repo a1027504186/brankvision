@@ -70,6 +70,16 @@ class KnowledgeUploadResponse(BaseModel):
     chunks: int
 
 
+class KnowledgeDocumentResponse(BaseModel):
+    id: str
+    title: str
+    source_name: str
+    content_type: str
+    status: str
+    chunks: int
+    created_at: datetime
+
+
 class KnowledgeQuery(BaseModel):
     query: str = Field(min_length=1, max_length=4000)
     brand_id: str | None = None
